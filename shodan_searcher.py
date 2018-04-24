@@ -6,6 +6,7 @@ parser = argparse.ArgumentParser(description='Search shodan for hosts vulnerable
 parser.add_argument('queries', nargs='*', help='additional search queries')
 parser.add_argument('--limit', help='maximum number of matching results to write to output, default being 500')
 parser.add_argument('--output', help='file to output the results to, default being shodan-search.out')
+parser.add_argument('--append', '-a', action='store_true', help='append to the output file')
 args = parser.parse_args()
 
 SHODAN_API_KEY = "JgF8iUdjxdODTma08wfw2SySkJiGLBmK"
@@ -30,8 +31,12 @@ print("Searching for string: \n"+search_string)
 try:
     total = 0
     results = api.search_cursor(search_string)  # an iterator for all pages of results
-
-    with open(filename, 'w') as f:
+    
+    mode = 'w'
+    if args.append:
+        mode = 'a'
+    
+    with open(filename, mode) as f:
         for i, result in enumerate(results):
             if i >= result_limit:
                 break
