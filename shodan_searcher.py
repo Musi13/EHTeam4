@@ -28,7 +28,7 @@ def query_shodan(query='', limit=500, output='shodan-search.out', append=False):
                 if i >= limit:
                     break
                 f.write(result['ip_str']+"\n")
-            total = i
+                total = i
 
         f.close()
         print("Number of results output to %s: %d\n" % (output, total))
