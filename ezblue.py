@@ -14,24 +14,18 @@ def dict_confirm(vuln_dict):
         print('Hosts vulnerable to MS08-067:\n')
         host_id = 0
         for ip in vuln_dict['ms08-067']:
-            print(host_id)
-            print(': ')
-            print(ip)
-            print('\n')
+            print('{0}: {1}'.format(host_id, ip))
     
     if vuln_dict['ms17-010']:
         print('Hosts vulnerable to MS17-010:\n')
         host_id = 0
         for ip in vuln_dict['ms17-010']:
-            print(host_id)
-            print(': ')
-            print(ip)
-            print('\n')
+            print('{0}: {1}'.format(host_id, ip))
     
     response = input('\nDo you want to exploit all of the above hosts?(y/n)\n')
     
     result = False
-    if response.lower() == 'y' or response.lower() == 'ye' or response.lower() == 'yes':
+    if 'yes'.startswith(response.lower()):
         result = True
     
     return result
@@ -104,18 +98,16 @@ if args.justnmap:
     if args.append:
         mode = 'a'
     
-    out = open(args.justnmap[0], mode)
-    out.write('ms08-067:\n')
-    for ip in vuln_dict['ms08-067']:
-        out.write(ip)
-        out.write('\n')
-    
-    out.write('\nms17-010:\n')
-    for ip in vuln_dict['ms17-010']:
-        out.write(ip)
-        out.write('\n')
-    
-    out.close()
+    with open(args.noexploit, mode) as out:
+        out.write('ms08-067:\n')
+        for ip in vuln_dict['ms08-067']:
+            out.write(ip)
+            out.write('\n')
+        
+        out.write('\nms17-010:\n')
+        for ip in vuln_dict['ms17-010']:
+            out.write(ip)
+            out.write('\n')
 
 elif args.noexploit:
     vuln_dict = vuln_checker.check_vulnerable(ip_file='shodan-search.out')
@@ -124,18 +116,16 @@ elif args.noexploit:
     if args.append:
         mode = 'a'
     
-    out = open(args.noexploit, mode)
-    out.write('ms08-067:\n')
-    for ip in vuln_dict['ms08-067']:
-        out.write(ip)
-        out.write('\n')
-    
-    out.write('\nms17-010:\n')
-    for ip in vuln_dict['ms17-010']:
-        out.write(ip)
-        out.write('\n')
-    
-    out.close()
+    with open(args.noexploit, mode) as out:
+        out.write('ms08-067:\n')
+        for ip in vuln_dict['ms08-067']:
+            out.write(ip)
+            out.write('\n')
+        
+        out.write('\nms17-010:\n')
+        for ip in vuln_dict['ms17-010']:
+            out.write(ip)
+            out.write('\n')
 
 elif args.noshodan:
     vuln_dict = vuln_checker.check_vulnerable(ip_file=args.noshodan)
