@@ -98,7 +98,7 @@ if args.justnmap:
     if args.append:
         mode = 'a'
     
-    with open(args.noexploit, mode) as out:
+    with open(args.justnmap[1], mode) as out:
         out.write('ms08-067:\n')
         for ip in vuln_dict['ms08-067']:
             out.write(ip)
