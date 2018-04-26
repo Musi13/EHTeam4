@@ -2,9 +2,9 @@ import argparse
 import glob
 import os
 import sys
-#import shodan_searcher
+import shodan_searcher
 import vuln_checker
-#import mss
+# import mss
 import metasploit_handler
 
 # Currently lists hosts and asks for y/n confirmation.
@@ -71,23 +71,11 @@ if args.clean:
 
 # Shodan search phase
 if args.justshodan or args.nonmap or args.noexploit or (not args.justshodan and not args.justnmap and not args.justexploit and not args.noshodan and not args.nonmap and not args.noexploit and not args.clean):
-    command = []
-    command.append('python shodan_searcher.py')
+    output = 'shodan-search.out'
+    if(args.justshodan):
+        output = args.justshodan
     
-    if args.append:
-        command.append('--append')
-    
-    if args.limit:
-        command.append('--limit ' + repr(args.limit))
-    
-    if args.justshodan:
-        command.append('--output ' + args.justshodan)
-    
-    if args.queries:
-        for query in args.queries:
-            command.append(query)
-    
-    os.system(' '.join(command))
+    shodan_searcher.query_shodan(query = ' '.join(args.queries), limit = args.limit, output = output, append = args.append)
 
 # Nmap vulnerability checking phase
 vuln_dict = {'ms08-067': [], 'ms17-010': []}

