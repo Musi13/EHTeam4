@@ -1,3 +1,4 @@
+ls
 ##########################################################################################################
 ##########################################################################################################
 ##													##
@@ -15,27 +16,64 @@
 ##########################################################################################################
 ##########################################################################################################
 
+#############
+##  ABOUT  ##
+#############
+
+EZBlue automates the discovery and exploitation of hosts vulnerable to MS08-067 and MS17-010 (EternalBlue).
+The result is meterpreter shells on the victim host(s) of your choice. 
+
+First, it searches shodan for hosts that may be vulnerable. Then, it scans that list of hosts with nmap
+to confirm that they are indeed vulnerable. Finally, it delivers the exploits with Metasploit, opening a
+meterpreter shell on the victim.
+
+
+#############
+##  LEGAL  ##
+#############
+
+The creators of EZBlue are not responsible for the usage of this tool. Do not use for government, secret service,
+or military purposes. Do not use for hate groups or paramilitary organizations. Do not use for illegal purposes.
+
+
+####################
+##  INSTALLATION  ##
+####################
+
+pip install requirements.txt
+
+Then use as normal below. 
+
 
 #############
 ##  USAGE  ##
 #############
 
+For full intended usage, run as:
 
-For intended usage, run as:
+    python ezblue.py [--limit LIMIT] [queries [queries...]]
 
-    python ezblue.py
+Refer to the help manual for ezblue.py for a list of all the options that allow you
+to skip certain phases of the exploitation chain (Good for demo purposes).
 
-
-----------------------------------------------------------------
-
-For class demonstration, run just the shodan-searching phase:
-
-    python ezblue.py --justshodan shodan.out
+If a LIMIT is not specified, the default is 500.
 
 
-Then, on a separate list of vulnerable ips, run:
+== EXAMPLES ==
 
-    python ezblue.py --noshodan fake_shodan.out
+To exploit 20 hosts in cities named Austin in the United States:
+
+	python ezblue.py --limit 20 city:austin country:US
+
+
+To discover and confirm but NOT exploit 10 hosts in Russia:
+
+	python ezblue.py -nx --limit 10 country:RU
+
+
+To only run the shodan search for 5 hosts anywhere in the world:
+
+   	python ezblue.py -js --limit 5
 
 
 ##############
