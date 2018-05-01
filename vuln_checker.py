@@ -2,8 +2,9 @@ from xml.etree import ElementTree as ET
 import json
 import argparse
 from subprocess import check_output
+import tempfile
 
-def check_vulnerable(ip=None, ip_file=None):
+def check_vulnerable(ip=None, ip_file=None, ip_list=None):
 
     results = {
         'ms08-067': [],
@@ -11,8 +12,14 @@ def check_vulnerable(ip=None, ip_file=None):
         'ms17-010-eternalblue': []
     }
 
+    pipe = None
     if ip is not None: # If ips supplied as an argument
         ip_input = ip
+    elif ip_list is not None:
+        pipe = tempfile.NamedTemporaryFile()
+        pipe.write('\n'.join(ip_list).encode('utf-8'))
+        pipe.flush()
+        ip_input = '-iL {0}'.format(pipe.name)
     elif ip_file is not None:
         ip_input = '-iL {0}'.format(ip_file)
     else:
@@ -24,6 +31,10 @@ def check_vulnerable(ip=None, ip_file=None):
     nmap_cmd = 'nmap -v -n -p445 --script=smb-vuln-ms08-067,smb-vuln-ms17-010,smb-os-discovery {ip_input} -oX -'.format(ip_input=ip_input)
 
     out_xml = check_output(nmap_cmd.split())#, encoding='utf-8')
+
+    if pipe:
+        pipe.close()
+
     root = ET.fromstring(out_xml)
 
     for host in root.findall('host'):
