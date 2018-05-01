@@ -6,6 +6,7 @@ import shodan_searcher
 import vuln_checker
 # import mss
 import metasploit_handler
+import json
 
 # Currently lists hosts and asks for y/n confirmation.
 # Goal would be line-item veto that allows list minute seleciton of which hosts to exploit.
@@ -80,52 +81,38 @@ if args.justshodan or args.nonmap or args.noexploit or (not args.justshodan and 
     shodan_searcher.query_shodan(query = ' '.join(args.queries), limit = args.limit, output = output, append = args.append)
 
 # Nmap vulnerability checking phase
-vuln_dict = {'ms08-067': [], 'ms17-010-psexec': [], 'ms17-010-eternalblue': []}
+# vuln_dict = {'ms08-067': [], 'ms17-010-psexec': [], 'ms17-010-eternalblue': []}
+vuln_dict = vuln_checker.check_vulnerable(ip=None)
 if args.justnmap:
     vuln_dict = vuln_checker.check_vulnerable(ip_file=args.justnmap[0])
-    
-    mode = 'w'
-    if args.append:
-        mode = 'a'
-    
-    with open(args.justnmap[1], mode) as out:
-        out.write('ms08-067:\n')
-        for ip in vuln_dict['ms08-067']:
-            out.write(ip)
-            out.write('\n')
-        
-        out.write('\nms17-010-psexec:\n')
-        for ip in vuln_dict['ms17-010-psexec']:
-            out.write(ip)
-            out.write('\n')
+    prev = None
 
-        out.write('\nms17-010-eternalblue:\n')
-        for ip in vuln_dict['ms17-010-eternalblue']:
-            out.write(ip)
-            out.write('\n')
+    # Load previous hosts, effectively a smart append
+    if args.append and os.path.exists(args.justnmap[1]):
+        with open(args.justnmap[1], 'r') as f:
+            prev = json.load(f)
+
+    if prev:
+        for key in prev:
+            vuln_dict[key] = vuln_dict.get(key, []) + prev[key]
+
+    with open(args.justnmap[1], 'w') as out:
+        json.dump(vuln_dict, out)
 
 elif args.noexploit:
     vuln_dict = vuln_checker.check_vulnerable(ip_file='shodan-search.out')
-    
-    mode = 'w'
-    if args.append:
-        mode = 'a'
-    
-    with open(args.noexploit, mode) as out:
-        out.write('ms08-067:\n')
-        for ip in vuln_dict['ms08-067']:
-            out.write(ip)
-            out.write('\n')
-        
-        out.write('\nms17-010-psexec:\n')
-        for ip in vuln_dict['ms17-010-psexec']:
-            out.write(ip)
-            out.write('\n')
+    prev = None
 
-        out.write('\nms17-010-eternalblue:\n')
-        for ip in vuln_dict['ms17-010-eternalblue']:
-            out.write(ip)
-            out.write('\n')
+    if args.append and os.path.exists(args.noexploit):
+        with open(args.noexploit, 'r') as f:
+            prev = json.load(f)
+
+    if prev:
+        for key in prev:
+            vuln_dict[key] = vuln_dict.get(key, []) + prev[key]
+
+    with open(args.noexploit, 'w') as out:
+        json.dump(vuln_dict, out)
 
 elif args.noshodan:
     vuln_dict = vuln_checker.check_vulnerable(ip_file=args.noshodan)
@@ -135,23 +122,8 @@ elif not args.justshodan and not args.justnmap and not args.justexploit and not 
 
 # Pre-Exploitation
 if args.justexploit:
-    readin = open(args.justexploit, 'r')
-    readin.readline()
-    
-    line = readin.readline()
-    while line != '\n':
-        vuln_dict['ms08-067'].append(line.replace('\n', ''))
-        line = readin.readline()
-    
-    readin.readline()
-    while line != '\n':
-        vuln_dict['ms17-010-psexec'].append(line.replace('\n', ''))
-        line = readin.readline()
-
-    readin.readline()
-    while line != '\n':
-        vuln_dict['ms17-010-eternalblue'].append(line.replace('\n', ''))
-        line = readin.readline()
+    with open(args.justexploit, 'r') as f:
+        vuln_dict = json.load(f)
 
 # Exploitation phase
 if args.justexploit or args.noshodan or args.nonmap or (not args.justshodan and not args.justnmap and not args.justexploit and not args.noshodan and not args.nonmap and not args.noexploit and not args.clean):

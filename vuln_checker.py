@@ -28,16 +28,21 @@ def check_vulnerable(ip=None, ip_file=None):
 
     for host in root.findall('host'):
         for script in host.findall('./hostscript/script'):
-            for elem in script.findall('./table/elem'):  # nmap's output has multiple 'elem' elements, instead of a state element or something
+            # nmap's output has multiple 'elem' elements, instead of a state element or something
+            for elem in script.findall('./table/elem'):
                 if elem.get('key') == 'state' and elem.text.lower() == 'vulnerable':
                     # This host is vulnerable to either ms08 or ms17, as determined by id in script
-                    # This might cause an issue if the address order isn't consistent (IP then MAC)
                     vuln = script.get('id')[-8:] # "ms17-010" or "ms08-067"
+                    # This might cause an issue if the address order isn't consistent (IP then MAC)
+                    # In the future, this could be changed to a tuple or something for port
                     host_identifier = host.find('address').get('addr')
 
                     if vuln == 'ms17-010':
                         for os_elem in host.findall('./hostscript/script/elem'):
                             if os_elem.get('key') == 'os':
+                                # Win 7 & 2008 R2 use eternalblue, everything else uses psexec version
+                                # Supposedly Win 8, 8.1, and 10 are vulnerable too, but eternalblue variant
+                                # doesn't even support them
                                 if os_elem.text.startswith('Windows 7 ') or os_elem.text.startswith('Windows Server 2008 R2 '):
                                     vuln += '-eternalblue'
                                 else:

