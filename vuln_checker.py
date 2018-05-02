@@ -78,8 +78,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Scan IPs for vulnerability to ms08-067 and ms17-010')
     input_group = parser.add_mutually_exclusive_group(required=True)
-    input_group.add_argument('--ip')
-    input_group.add_argument('--file')
+    input_group.add_argument('--ip', help='ip to check for vulnerabilities', default=None)
+    input_group.add_argument('--file', help='file containing a list of ips to check for vulnerabilities', default=None)
     args = parser.parse_args()
 
     print(json.dumps(check_vulnerable(args.ip, args.file)))
