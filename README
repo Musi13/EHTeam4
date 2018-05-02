@@ -67,12 +67,12 @@ To exploit 20 hosts in cities named Austin in the United States:
 
 To discover and confirm but NOT exploit 10 hosts in Russia:
 
-	python ezblue.py -nx --limit 10 country:RU
+	python ezblue.py -nx confirmed.out --limit 10 country:RU
 
 
 To only run the shodan search for 5 hosts anywhere in the world:
 
-   	python ezblue.py -js --limit 5
+   	python ezblue.py -js shodan.out --limit 5
 
 
 ##############
