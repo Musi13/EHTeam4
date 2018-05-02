@@ -9,6 +9,14 @@ api = shodan.Shodan(SHODAN_API_KEY)
 
 
 def query_shodan(query='', limit=500):
+    """
+    @query: A string to be appended to the default search string. Syntax should follow Shodan specification.
+    @limit: The maximum number of results to return.
+
+    Query Shodan.io for hosts that match the given query 
+    (and are also potentially vulnerable to ms08-067 or ms17-010).
+    Returns a list of IP addresses as strings.
+    """
 
     search_string = ' port:445 "SMB Version: 1" os:Windows !product:Samba ' + query
 

