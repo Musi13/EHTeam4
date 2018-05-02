@@ -1,4 +1,3 @@
-ls
 ##########################################################################################################
 ##########################################################################################################
 ##													##
@@ -40,7 +39,7 @@ or military purposes. Do not use for hate groups or paramilitary organizations. 
 ##  INSTALLATION  ##
 ####################
 
-pip install requirements.txt
+pip install -r requirements.txt
 
 Then use as normal below. 
 
@@ -80,9 +79,9 @@ To only run the shodan search for 5 hosts anywhere in the world:
 ##  ISSUES  ##
 ##############
 
--Doesn't find vulnerability on W7 hosts. May be an issue with nmap.
 -Hangs on Shodan searching phase sometimes. Might be an API issue.
--
+-Doesn't work with potentially vulnerable hosts on Windows 8, 8.1, or 10
+due to no Metasploit modules supporting those versions (without credentials).
 
 
 ###############
