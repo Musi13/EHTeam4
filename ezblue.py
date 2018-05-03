@@ -7,31 +7,34 @@ import vuln_checker
 # import mss
 import metasploit_handler
 import json
+from pick import Picker
 
-# Currently lists hosts and asks for y/n confirmation.
-# Goal would be line-item veto that allows list minute seleciton of which hosts to exploit.
+# Currently lists hosts and allows a selection to attack
+# would be nice to have more identifying information
 def dict_confirm(vuln_dict):
-    if vuln_dict['ms08-067']:
-        print('Hosts vulnerable to MS08-067:\n')
-        host_id = 0
-        for ip in vuln_dict['ms08-067']:
-            print('{0}: {1}'.format(host_id, ip))
     
-    if vuln_dict['ms17-010-psexec'] or vuln_dict['ms17-010-eternalblue']:
-        print('Hosts vulnerable to MS17-010:\n')
-        host_id = 0
-        for ip in vuln_dict['ms17-010-psexec']:
-            print('{0}: {1}'.format(host_id, ip))
-        for ip in vuln_dict['ms17-010-eternalblue']:
-            print('{0}: {1}'.format(host_id, ip))
+    def get_disp(option): return option[1]
+    # Must return a true-y iterable thats empty
+    def q_exit(picker): return (k for k in [])
+
+    title = 'Please choose which hosts to attack:\nSpace = (De)select\nEnter = Confirm\nQ = Quit and Attack Nothing'
+
+    options = []
+    for key in vuln_dict:
+        for value in vuln_dict[key]:
+            options.append((key, value))
+
+    picker = Picker(options, title, indicator='>', multi_select=True, options_map_func=get_disp)
+    picker.all_selected = list(range(0, len(options)))
+    picker.register_custom_handler(ord('q'), q_exit)
+
+    selected = picker.start()
+
+    assembled = vuln_checker.check_vulnerable()
+    for item in selected:
+        assembled[item[0][0]].append(item[0][1])
     
-    response = input('\nDo you want to exploit all of the above hosts?(y/n)\n')
-    
-    result = False
-    if 'yes'.startswith(response.lower()):
-        result = True
-    
-    return result
+    return assembled
 
 
 parser = argparse.ArgumentParser(prog='EZBlue', description='Identify and exploit hosts that are vulnerable to ms08-067 or ms17-010.')
@@ -138,8 +141,6 @@ if args.justexploit or args.noshodan or args.nonmap or (not args.justshodan and 
         sys.exit()
 
     if not args.noconfirmation: # Runs confirmation
-        if not dict_confirm(vuln_dict): # Make this functionality richer.
-            sys.exit()
+        vuln_dict = dict_confirm(vuln_dict) # Make this functionality richer.
 
-    print('Going nuclear!\n')
     metasploit_handler.handle_exploitation(exploit_dict=vuln_dict)
